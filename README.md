@@ -41,9 +41,6 @@ Order of Operations for Success:
 > **Note**
 > Minimum version of Python required is 3.10
 
-> **Warning**
-> Docker Installation ONLY works on Linux at this time
-
 Follow the instructions for a [git install](documentation/install-from-git.md) (recommended), or [docker install](documentation/install-from-docker.md).
 
 ## Authenticating your Account

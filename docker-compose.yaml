@@ -5,13 +5,16 @@ services:
         restart: unless-stopped
         build: .
 
-        # host-mode networking is required for pppp communication with the
-        # printer, since it is an asymmetrical udp protocol.
-        network_mode: host
+        # explicit port mapping is used instead of host networking to 
+        # allow macOS and Windows Docker Desktop compatibility.
+        ports:
+            - "${FLASK_PORT:-4470}:${FLASK_PORT:-4470}/tcp"
+            - "32108:32108/udp" # PPPP_LAN_PORT for camera/LAN traffic
+            - "32100:32100/udp" # PPPP_WAN_PORT fallback
 
-        # bind to localhost by default
+        # bind to 0.0.0.0 so the container can receive traffic
         environment:
-            - FLASK_HOST={$FLASK_HOST:-127.0.0.1}
+            - FLASK_HOST=0.0.0.0
             - FLASK_PORT=${FLASK_PORT:-4470}
         volumes:
             - ${ANKERCTL_DATA:-ankerctl_vol}:/root/.config/ankerctl

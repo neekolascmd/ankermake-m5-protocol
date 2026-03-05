@@ -24,11 +24,9 @@ The `ankerctl` program uses [`libflagship`](documentation/developer-docs/libflag
 
  - Easily monitor print status.
 
-### Upcoming and Planned Features
+### Integrations
 
- - Integration into other software. Home Assistant? Cura plugin?
-
-Let us know what you want to see; Pull requests always welcome! :smile:
+- **Home Assistant**: `ankerctl` now ships with a native Home Assistant Custom Component! Simply copy the `custom_components/ankermake` directory into your Home Assistant `config/custom_components` folder, restart Home Assistant, and click "Add Integration" to natively import your AnkerMake printers and their live MQTT sensors (Temperature, Print Progress) into your dashboard.
 
 ## Installation
 

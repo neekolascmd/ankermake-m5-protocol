@@ -139,7 +139,3 @@ Some examples:
 # select printer to use when you have multiple
 ./ankerctl.py -p <index> # index starts at 0 and goes up to the number of printers you have
 ```
-
-## Legal
-
-Some icons from [IconFinder](https://www.iconfinder.com/iconsets/3d-printing-line), and licensed under [Creative Commons](https://creativecommons.org/licenses/by/3.0/)

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added native Home Assistant custom component integration (`custom_components/ankermake`) with UI-based config flow.
+- Added new `documentation/login-instructions.md` covering the updated API login procedure.
+
+### Changed
+- Replaced pre-built remote docker image dependency with a local `ankerctl:latest` Docker build target in `docker-compose.yaml`.
+- Removed Linux-only restriction for Docker installation by explicitly binding UDP port 32108 to overcome virtualized NAT environments.
+- Rewrote `README.md` and `install-from-git/docker.md` installation documentation to reflect the new CLI API authentication flow.
+
+### Fixed
+- Fixed webserver startup crashing issues on Windows environments due to unhandled `queue.Empty` exceptions parsing the stream state.
+- Fixed timeout bugs during PPPP network connections by explicitly declaring socket bindings to `0.0.0.0`.
+
+### Removed
+- Removed the deprecated Desktop Slicer `login.json` extraction methodology entirely, completing the migration to native AnkerMake HTTP API authentication.
+- Removed obsolete `config decode` and `config import` CLI commands from `ankerctl.py`.
+- Removed abandoned helper scripts including `docker-import.sh`, `extract-auth-token.py`, and `web/platform.py`.
+- Removed unused `user_agents` parsing dependency from `requirements.txt`.
 ## [1.0.1] - 2024-01-15
 
  - Fixes MQTT connection errors post AnkerMake Firmware Upgrades

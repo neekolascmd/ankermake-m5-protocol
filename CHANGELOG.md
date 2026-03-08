@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote `README.md` and `install-from-git/docker.md` installation documentation to reflect the new CLI API authentication flow.
 
 ### Fixed
+- Fixed the offline WebGUI Temperature Control inputs by replacing the deprecated `PREHEAT_CONFIG` command channel with `ZZ_MQTT_CMD_GCODE` handlers for `M104` and `M140`.
+- Fixed a fatal `EOFError` race condition over Windows native environments where multiprocessing sockets (Video and MQTT queues) crashed attempting to bind the same hardcoded broadcast port concurrently.
 - Fixed webserver startup crashing issues on Windows environments due to unhandled `queue.Empty` exceptions parsing the stream state.
 - Fixed timeout bugs during PPPP network connections by explicitly declaring socket bindings to `0.0.0.0`.
 

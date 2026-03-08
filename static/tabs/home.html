@@ -1,23 +1,13 @@
-<div
-    class="tab-pane fade{% if configure %} show active{% endif %}"
-    id="home"
-    role="tabpanel"
-    aria-labelledby="home-tab"
->
+<div class="tab-pane fade{% if configure %} show active{% endif %}" id="home" role="tabpanel"
+    aria-labelledby="home-tab">
     <div class="container fullscreen-emulate" id="vmain">
         <div class="row g-3">
             <div class="col-md-12 col-lg-6 col-xl-8">
                 {% if video_supported %}
                 <!-- Video Container -->
                 <div id="vplayer" class="position-relative">
-                    <video
-                        class="w-100 d-block rounded-3 bg-body-tertiary"
-                        playsinline
-                        autoplay
-                        muted
-                        id="player"
-                        poster="{{ url_for('static', filename='img/load-screen.svg') }}"
-                    >
+                    <video class="w-100 d-block rounded-3 bg-body-tertiary" playsinline autoplay muted id="player"
+                        poster="{{ url_for('static', filename='img/load-screen.svg') }}">
                     </video>
                     <button class="btn btn-secondary opacity-50" id="video-fs">
                         {{ macro.bi_icon("fullscreen") }}
@@ -89,30 +79,17 @@
                                     <div class="input-group-text mx-auto" id="nozzleGroup">
                                         <i class="icon icon-hotend"></i>
                                     </div>
-                                    <span
-                                        id="nozzle-temp"
-                                        class="form-control text-center"
-                                        title="Current Nozzle Temperature"
-                                        aria-describedby="nozzleGroup"
-                                    >
+                                    <span id="nozzle-temp" class="form-control text-center"
+                                        title="Current Nozzle Temperature" aria-describedby="nozzleGroup">
                                         0°C
                                     </span>
-                                    <button
-                                        type="button" class="btn btn-secondary"
-                                        id="set-nozzle-temp"
-                                        name="set-nozzle-temp"
-                                        class="input-group-text"
-                                        title="Target Nozzle Temperature"
-                                        aria-label="Target Nozzle Temperature"
-                                        aria-describedby="nozzleGroup"
-                                        data-bs-toggle="modal" data-bs-target="#popupModalInput"
-                                        data-input-type="number"
-                                        data-input-min="0"
-                                        data-input-max="300"
-                                        data-input-icon-class="icon-hotend"
-                                        data-input-unit="°C"
-                                        disabled
-                                    >
+                                    <button type="button" class="btn btn-secondary" id="set-nozzle-temp"
+                                        name="set-nozzle-temp" class="input-group-text"
+                                        title="Target Nozzle Temperature" aria-label="Target Nozzle Temperature"
+                                        aria-describedby="nozzleGroup" data-bs-toggle="modal"
+                                        data-bs-target="#popupModalInput" data-input-type="number" data-input-min="0"
+                                        data-input-max="300" data-input-icon-class="icon-hotend" data-input-unit="°C"
+                                        disabled>
                                         0°C
                                     </button>
                                 </div>
@@ -122,33 +99,36 @@
                                     <div class="input-group-text mx-auto" id="bedGroup">
                                         <i class="icon icon-bed"></i>
                                     </div>
-                                    <span
-                                        id="bed-temp"
-                                        class="form-control text-center"
-                                        title="Current Bed Temperature"
-                                        aria-describedby="bedGroup"
-                                    >
+                                    <span id="bed-temp" class="form-control text-center" title="Current Bed Temperature"
+                                        aria-describedby="bedGroup">
                                         0°C
                                     </span>
-                                    <button
-                                        type="button" class="btn btn-secondary"
-                                        id="set-bed-temp"
-                                        name="set-bed-temp"
-                                        class="input-group-text"
-                                        title="Target Bed Temperature"
-                                        aria-label="Target Bed Temperature"
-                                        aria-describedby="bedGroup"
+                                    <button type="button" class="btn btn-secondary" id="set-bed-temp"
+                                        name="set-bed-temp" class="input-group-text" title="Target Bed Temperature"
+                                        aria-label="Target Bed Temperature" aria-describedby="bedGroup"
                                         data-bs-toggle="modal" data-bs-target="#popupModalInput"
-                                        data-input-type="number"
-                                        data-input-min="0"
-                                        data-input-max="100"
-                                        data-input-icon-class="icon-bed"
-                                        data-input-unit="°C"
-                                        disabled
-                                    >
+                                        data-input-type="number" data-input-min="0" data-input-max="100"
+                                        data-input-icon-class="icon-bed" data-input-unit="°C" disabled>
                                         0°C
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3 g-2">
+                            <div class="col-4">
+                                <button class="w-100 btn btn-outline-secondary btn-sm" id="preheat-pla" disabled>
+                                    PLA
+                                </button>
+                            </div>
+                            <div class="col-4">
+                                <button class="w-100 btn btn-outline-secondary btn-sm" id="preheat-petg" disabled>
+                                    PETG
+                                </button>
+                            </div>
+                            <div class="col-4">
+                                <button class="w-100 btn btn-outline-secondary btn-sm" id="preheat-cooldown" disabled>
+                                    Cooldown
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -158,12 +138,8 @@
                             <div class="col-12">
                                 <div class="input-group">
                                     <div class="input-group-text print-info-label" id="printName">Name</div>
-                                    <span
-                                        id="print-name"
-                                        class="form-control"
-                                        title="Print Name"
-                                        aria-describedby="printName"
-                                    >
+                                    <span id="print-name" class="form-control" title="Print Name"
+                                        aria-describedby="printName">
                                     </span>
                                 </div>
                             </div>
@@ -174,12 +150,8 @@
                                     <div class="input-group-text print-info-label" id="timeElapsed">
                                         <i class="icon icon-time-passed"></i>
                                     </div>
-                                    <span
-                                        id="time-elapsed"
-                                        class="form-control text-center"
-                                        title="Time Elapsed"
-                                        aria-describedby="timeElapsed"
-                                    >
+                                    <span id="time-elapsed" class="form-control text-center" title="Time Elapsed"
+                                        aria-describedby="timeElapsed">
                                         00:00:00
                                     </span>
                                 </div>
@@ -189,12 +161,8 @@
                                     <div class="input-group-text print-info-label" id="timeRemain">
                                         <i class="icon icon-time-remaining"></i>
                                     </div>
-                                    <span
-                                        id="time-remain"
-                                        class="form-control text-center"
-                                        title="Time Remaining"
-                                        aria-describedby="timeRemain"
-                                    >
+                                    <span id="time-remain" class="form-control text-center" title="Time Remaining"
+                                        aria-describedby="timeRemain">
                                         00:00:00
                                     </span>
                                 </div>
@@ -203,16 +171,9 @@
                         <div class="row mb-3 g-3">
                             <div class="col-12">
                                 <div class="progress position-relative" id="printProgress">
-                                    <div
-                                        class="progress-bar progress-bar-striped progress-bar-animated fs-5"
-                                        role="progressbar"
-                                        id="progressbar"
-                                        title="Progress Bar"
-                                        aria-valuenow="0"
-                                        aria-valuemin="0"
-                                        aria-valuemax="100"
-                                        style="width: 0%"
-                                    >
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated fs-5"
+                                        role="progressbar" id="progressbar" title="Progress Bar" aria-valuenow="0"
+                                        aria-valuemin="0" aria-valuemax="100" style="width: 0%">
                                         <span id="progress" class="position-absolute w-100 fw-bold">
                                             0%
                                         </span>
@@ -226,12 +187,8 @@
                                     <div class="input-group-text print-info-label" id="printLayer">
                                         {{ macro.bi_icon("layers-half") }}
                                     </div>
-                                    <span
-                                        id="print-layer"
-                                        class="form-control text-center"
-                                        title="Print Layers"
-                                        aria-describedby="printLayer"
-                                    >
+                                    <span id="print-layer" class="form-control text-center" title="Print Layers"
+                                        aria-describedby="printLayer">
                                         0/0
                                     </span>
                                 </div>
@@ -241,12 +198,8 @@
                                     <div class="input-group-text print-info-label" id="printSpeed">
                                         {{ macro.bi_icon("speedometer") }}
                                     </div>
-                                    <span
-                                        id="print-speed"
-                                        class="form-control text-center small"
-                                        title="Print Speed"
-                                        aria-describedby="printSpeed"
-                                    >
+                                    <span id="print-speed" class="form-control text-center small" title="Print Speed"
+                                        aria-describedby="printSpeed">
                                         0mm/s
                                     </span>
                                 </div>

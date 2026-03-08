@@ -602,7 +602,7 @@ $(function () {
             case "set-nozzle-temp":
                 gcodeCMD = "M104 S" + new_value_int.toString();
                 message_data = {
-                    commandType: 1017, // ZZ_MQTT_CMD_GCODE_COMMAND
+                    commandType: MqttMsgType.ZZ_MQTT_CMD_GCODE_COMMAND,
                     cmdData: gcodeCMD,
                     cmdLen: gcodeCMD.length,
                 };
@@ -610,7 +610,7 @@ $(function () {
             case "set-bed-temp":
                 gcodeCMD = "M140 S" + new_value_int.toString();
                 message_data = {
-                    commandType: 1017, // ZZ_MQTT_CMD_GCODE_COMMAND
+                    commandType: MqttMsgType.ZZ_MQTT_CMD_GCODE_COMMAND,
                     cmdData: gcodeCMD,
                     cmdLen: gcodeCMD.length,
                 };

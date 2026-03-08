@@ -648,6 +648,15 @@ $(function () {
     });
 
     $("#extrude-btn").on("click", function () {
+        const currentTempText = $("#nozzle-temp").text();
+        const currentTemp = parseInt(currentTempText, 10) || 0;
+
+        if (currentTemp < 180) {
+            alert("Nozzle is too cold to extrude safely. Preparing to preheat to 200°C.");
+            sendNewValueViaMQTT("set-nozzle-temp", "200");
+            return false;
+        }
+
         const len = $("input[name='extrude-len']:checked").val();
 
         const gcode1 = "M83";
@@ -672,6 +681,15 @@ $(function () {
     });
 
     $("#retract-btn").on("click", function () {
+        const currentTempText = $("#nozzle-temp").text();
+        const currentTemp = parseInt(currentTempText, 10) || 0;
+
+        if (currentTemp < 180) {
+            alert("Nozzle is too cold to retract safely. Preparing to preheat to 200°C.");
+            sendNewValueViaMQTT("set-nozzle-temp", "200");
+            return false;
+        }
+
         const len = $("input[name='extrude-len']:checked").val();
 
         const gcode1 = "M83";

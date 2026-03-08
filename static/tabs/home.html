@@ -105,6 +105,27 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-12">
+                                <div class="input-group">
+                                    <div class="input-group-text mx-auto" id="fanGroup" style="width: 44px">
+                                        <i class="icon icon-fan"></i>
+                                    </div>
+                                    <span id="fan-speed" class="form-control text-center text-nowrap"
+                                        title="Current Fan Speed" aria-describedby="fanGroup">
+                                        0%
+                                    </span>
+                                    <button type="button" class="btn btn-secondary text-nowrap" id="set-fan-speed"
+                                        name="set-fan-speed" class="input-group-text" title="Target Fan Speed"
+                                        aria-label="Target Fan Speed" aria-describedby="fanGroup" data-bs-toggle="modal"
+                                        data-bs-target="#popupModalInput" data-input-type="number" data-input-min="0"
+                                        data-input-max="255" data-input-icon-class="icon-fan" data-input-unit=""
+                                        disabled>
+                                        0
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row mt-3 g-2">
                             <div class="col-4">
                                 <button class="w-100 btn btn-outline-secondary btn-sm" id="preheat-pla" disabled>
@@ -152,6 +173,17 @@
                                 <button class="w-100 btn btn-secondary" id="retract-btn" disabled>
                                     Retract
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-header fs-6">System Status</div>
+                    <div class="card-body">
+                        <div class="row mb-3 g-3">
+                            <div class="col-12">
+                                <div class="alert alert-secondary text-center fw-bold mb-0" id="system-status"
+                                    role="alert" style="padding: 0.5rem 1rem;">
+                                    Offline
+                                </div>
                             </div>
                         </div>
                     </div>

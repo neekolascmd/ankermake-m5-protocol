@@ -136,6 +136,21 @@ $(function () {
     });
 
     /**
+     * Appends a timestamped line to the Debug Console textarea and scrolls to bottom.
+     */
+    function logDebug(msg) {
+        const consoleEl = $("#debug-console");
+        if (!consoleEl.length) return;
+        const time = new Date().toLocaleTimeString();
+        consoleEl.val(consoleEl.val() + `[${time}] ${msg}\n`);
+        consoleEl[0].scrollTop = consoleEl[0].scrollHeight;
+    }
+
+    $("#clear-debug-btn").on("click", function () {
+        $("#debug-console").val("");
+    });
+
+    /**
      * Get temperature from input
      * @param {number} temp Temperature in Celsius
      * @returns {number} Rounded temperature
@@ -334,6 +349,9 @@ $(function () {
      */
     sockets = {};
 
+    let lastProgress = -1;
+    let lastLayer = "";
+
     sockets.mqtt = new AutoWebSocket({
         name: "mqtt socket",
         url: `${location.protocol.replace('http', 'ws')}//${location.host}/ws/mqtt`,
@@ -353,6 +371,10 @@ $(function () {
                 $("#time-elapsed").text(getTime(data.totalTime));
                 $("#time-remain").text(getTime(data.time));
                 const progress = getPercentage(data.progress);
+                if (progress !== lastProgress) {
+                    logDebug(`Print Details Update: ${progress}% Complete`);
+                    lastProgress = progress;
+                }
                 $("#progressbar").attr("aria-valuenow", progress);
                 $("#progressbar").attr("style", `width: ${progress}%`);
                 $("#progress").text(`${progress}%`);
@@ -383,9 +405,16 @@ $(function () {
             } else if (data.commandType == 1052) {
                 // Returns Layer Info
                 const layer = `${data.real_print_layer} / ${data.total_layer}`;
+                if (layer !== lastLayer) {
+                    logDebug(`Layer Change: ${layer}`);
+                    lastLayer = layer;
+                }
                 $("#print-layer").text(layer);
+            } else if (data.commandType == 1007 || data.commandType == 1008 || data.commandType == 1009) {
+                // Silently sink high-frequency time elapsed/remaining broadcast loops to avoid Console flooding
             } else {
-                console.log("Unhandled mqtt message:", data);
+                // logDebug(`Unhandled MQTT: ${ev.data}`);
+                // console.log("Unhandled mqtt message:", data);
             }
         },
 
@@ -483,9 +512,10 @@ $(function () {
      * On click of element with id "light-on", sends JSON data to wsctrl to turn light on
      */
     $("#light-on").on("click", function () {
-        sockets.ctrl.ws.send(JSON.stringify({ light: true }));
-        $("#light-on").addClass("btn-primary").removeClass("btn-secondary opacity-75");
-        $("#light-off").addClass("btn-secondary opacity-75").removeClass("btn-primary");
+        logDebug("Command Dispatched: Light ON");
+        sockets.ctrl.ws.send(JSON.stringify({ light: 1 }));
+        $("#light-on").removeClass("btn-secondary opacity-75").addClass("btn-primary");
+        $("#light-off").removeClass("btn-primary").addClass("btn-secondary opacity-75");
         return false;
     });
 
@@ -493,9 +523,10 @@ $(function () {
      * On click of element with id "light-off", sends JSON data to wsctrl to turn light off
      */
     $("#light-off").on("click", function () {
-        sockets.ctrl.ws.send(JSON.stringify({ light: false }));
-        $("#light-off").addClass("btn-primary").removeClass("btn-secondary opacity-75");
-        $("#light-on").addClass("btn-secondary opacity-75").removeClass("btn-primary");
+        logDebug("Command Dispatched: Light OFF");
+        sockets.ctrl.ws.send(JSON.stringify({ light: 0 }));
+        $("#light-off").removeClass("btn-secondary opacity-75").addClass("btn-primary");
+        $("#light-on").removeClass("btn-primary").addClass("btn-secondary opacity-75");
         return false;
     });
 
@@ -503,6 +534,7 @@ $(function () {
      * On click of element with id "quality-low", sends JSON data to wsctrl to set video quality to low
      */
     $("#quality-low").on("click", function () {
+        logDebug("Command Dispatched: Video Quality LOW");
         sockets.ctrl.ws.send(JSON.stringify({ quality: 0 }));
         return false;
     });
@@ -511,6 +543,7 @@ $(function () {
      * On click of element with id "quality-high", sends JSON data to wsctrl to set video quality to high
      */
     $("#quality-high").on("click", function () {
+        logDebug("Command Dispatched: Video Quality HIGH");
         sockets.ctrl.ws.send(JSON.stringify({ quality: 1 }));
         return false;
     });
@@ -606,6 +639,7 @@ $(function () {
             case "set-nozzle-temp":
                 const clampedNozzle = Math.min(new_value_int, 260);
                 gcodeCMD = "M104 S" + clampedNozzle.toString();
+                logDebug(`Targeting Nozzle: ${gcodeCMD}`);
                 message_data = {
                     commandType: MqttMsgType.ZZ_MQTT_CMD_GCODE_COMMAND,
                     cmdData: gcodeCMD,
@@ -615,6 +649,7 @@ $(function () {
             case "set-bed-temp":
                 const clampedBed = Math.min(new_value_int, 100);
                 gcodeCMD = "M140 S" + clampedBed.toString();
+                logDebug(`Targeting Bed: ${gcodeCMD}`);
                 message_data = {
                     commandType: MqttMsgType.ZZ_MQTT_CMD_GCODE_COMMAND,
                     cmdData: gcodeCMD,
@@ -640,8 +675,10 @@ $(function () {
             }
 
             sendNewValueViaMQTT("set-bed-temp", bed.toString());
+            logDebug(`Preset ${preset.toUpperCase()}: Target Bed to ${bed}°C`);
             setTimeout(() => {
                 sendNewValueViaMQTT("set-nozzle-temp", nozzle.toString());
+                logDebug(`Preset ${preset.toUpperCase()}: Target Nozzle to ${nozzle}°C`);
             }, 500);
             return false;
         });
@@ -652,6 +689,7 @@ $(function () {
         const currentTemp = parseInt(currentTempText, 10) || 0;
 
         if (currentTemp < 180) {
+            logDebug(`Blocked Extrude: Nozzle currently ${currentTemp}°C (<180°C). Overriding with preheat M104 S200`);
             const flash = $(`<div class="alert alert-warning alert-dismissible fade show" role="alert"><button type="button" class="btn-close btn-sm btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>Nozzle is too cold to extrude safely. Preparing to preheat to 200°C.</div>`);
             $("#messages").append(flash);
             setTimeout(() => flash.alert('close'), 7500);
@@ -667,6 +705,7 @@ $(function () {
             cmdData: gcode1,
             cmdLen: gcode1.length,
         };
+        logDebug(`Dispatched: ${gcode1}`);
         sockets.ctrl.ws.send(JSON.stringify({ mqtt: message1 }));
 
         setTimeout(() => {
@@ -676,6 +715,7 @@ $(function () {
                 cmdData: gcode2,
                 cmdLen: gcode2.length,
             };
+            logDebug(`Dispatched: ${gcode2}`);
             sockets.ctrl.ws.send(JSON.stringify({ mqtt: message2 }));
         }, 500);
 
@@ -687,6 +727,7 @@ $(function () {
         const currentTemp = parseInt(currentTempText, 10) || 0;
 
         if (currentTemp < 180) {
+            logDebug(`Blocked Retract: Nozzle currently ${currentTemp}°C (<180°C). Overriding with preheat M104 S200`);
             const flash = $(`<div class="alert alert-warning alert-dismissible fade show" role="alert"><button type="button" class="btn-close btn-sm btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>Nozzle is too cold to retract safely. Preparing to preheat to 200°C.</div>`);
             $("#messages").append(flash);
             setTimeout(() => flash.alert('close'), 7500);
@@ -702,6 +743,7 @@ $(function () {
             cmdData: gcode1,
             cmdLen: gcode1.length,
         };
+        logDebug(`Dispatched: ${gcode1}`);
         sockets.ctrl.ws.send(JSON.stringify({ mqtt: message1 }));
 
         setTimeout(() => {
@@ -711,6 +753,7 @@ $(function () {
                 cmdData: gcode2,
                 cmdLen: gcode2.length,
             };
+            logDebug(`Dispatched: ${gcode2}`);
             sockets.ctrl.ws.send(JSON.stringify({ mqtt: message2 }));
         }, 500);
 

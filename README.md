@@ -1,6 +1,6 @@
 # AnkerMake M5 Protocol 2026 Edition
 
-Welcome! This repository contains `ankerctl`, a command-line interface and web UI for monitoring, controlling and interfacing with AnkerMake M5 and M5C 3D printers.
+Welcome! This repository contains `ankerctl`, a command-line interface and web UI for monitoring, controlling, and interfacing with AnkerMake M5 and M5C 3D printers.
 
 The `ankerctl` program uses [`libflagship`](documentation/developer-docs/libflagship.md), a library for communicating with the numerous different protocols required for connecting to an AnkerMake M5 or M5C printer. The `libflagship` library is also maintained in this repo, under [`libflagship/`](libflagship/).
 
@@ -10,101 +10,92 @@ The `ankerctl` program uses [`libflagship`](documentation/developer-docs/libflag
 
 ### Current Features
 
- - Print directly from PrusaSlicer and its derivatives (SuperSlicer, Bamboo Studio, OrcaSlicer, etc.)
+- Print directly from PrusaSlicer and its derivatives (SuperSlicer, Bambu Studio, OrcaSlicer, etc.).
 
- - Connect to AnkerMake M5/M5C and AnkerMake APIs without using closed-source Anker software.
+- Connect to AnkerMake M5/M5C printers and AnkerMake APIs without using closed-source Anker software.
 
- - Send raw gcode commands to the printer (and see the response).
+- Send raw G-code commands to the printer and view the response.
 
- - Low-level access to MQTT, PPPP and HTTPS APIs.
+- Use low-level MQTT, PPPP, and HTTPS APIs.
 
- - Send print jobs (gcode files) to the printer.
+- Send print jobs (G-code files) to the printer.
 
- - Stream camera image/video to your computer (AnkerMake M5 only).
+- Stream camera images and video to your computer (AnkerMake M5 only).
 
- - Easily monitor print status.
+- Monitor print status.
 
 ### Integrations
 
-- **Home Assistant**: `ankerctl` now ships with a native Home Assistant Custom Component! Simply copy the `custom_components/ankermake` directory into your Home Assistant `config/custom_components` folder, restart Home Assistant, and click "Add Integration" to natively import your AnkerMake printers and their live MQTT sensors (Temperature, Print Progress) into your dashboard.
+- **Home Assistant**: `ankerctl` ships with a native Home Assistant custom component. Copy the `custom_components/ankermake` directory into your Home Assistant `config/custom_components` folder, restart Home Assistant, and select **Add Integration** to import your AnkerMake printers and their live MQTT sensors into your dashboard.
 
 ## Installation
 
-There are currently two ways to do an install of ankerctl. You can install directly from git utilizing python on your Operating System or you can install from Docker which will install ankerctl in a containerized environment. Only one installation method should be chosen. 
+Choose one installation method:
 
-Order of Operations for Success:
-- Choose installation method: [Docker](documentation/install-from-docker.md) or [Git](documentation/install-from-git.md)
-- Follow the installation intructions for the install method
-- Login to your AnkerMake account
-- Have fun! Either run `ankerctl` from CLI or launch the webserver
+- [Install directly from Git](documentation/install-from-git.md) (recommended). This requires Python 3.10 or later.
+- [Install with Docker](documentation/install-from-docker.md). The Docker image is built locally from this repository.
 
-> **Note**
-> Minimum version of Python required is 3.10
-
-Follow the instructions for a [git install](documentation/install-from-git.md) (recommended), or [docker install](documentation/install-from-docker.md).
+After installing, authenticate your AnkerMake account before starting the web interface or using printer commands.
 
 ## Authenticating your Account
 
-1. Import your AnkerMake account data by opening a terminal window in the root `ankermake-m5-protocol` directory and logging in:
+From the root `ankermake-m5-protocol` directory, run the login command for your installation method.
 
-   ```sh
-   python3 ankerctl.py config login
-   ```
+Git installation:
 
-   You will be asked to provide your AnkerMake **Email**, **Password**, and **Country Code**.
+```sh
+./ankerctl.py config login
+```
 
-   > **Note:** For more specific details on authentication options, bypassing Captchas, and verifying your connection, read the [Login Instructions page](documentation/login-instructions.md).
+Docker installation:
 
-   At this point, your config is saved locally. To see an overview of the stored data and verify your connected printers, use `config show`:
+```sh
+docker compose run --rm ankerctl config login
+```
 
-   ```sh
-   ./ankerctl.py config show
-   [*] Account:
-       user_id: 01234567890abcdef012...<REDACTED>
-       email:   bob@example.org
-       region:  eu
-   
-   [*] Printers:
-       sn: AK7ABC0123401234
-       duid: EUPRAKM-001234-ABCDE
-   ```
+You will be asked for your AnkerMake email address, password, and two-letter country code. For authentication options, CAPTCHA handling, and troubleshooting, read the [Login Instructions](documentation/login-instructions.md).
 
-> **NOTE:** 
-> The cached login info contains sensitive details. In particular, the `user_id` field is used when connecting to MQTT servers, and essentially works as a password. Thus, the end of the value is redacted when printed to screen, to avoid accidentally disclosing sensitive information.
+To verify the imported account and printers, run `config show` using the same installation method:
 
-2. Now that the printer information is known to `ankerctl`, the tool is ready to use. There’s a lot of available commands and utilities, use a command followed by `-h` to learn what your options are and get more in specific usage instructions.
+```sh
+# Git installation
+./ankerctl.py config show
 
-> **NOTE:**
-> You must keep the terminal webserver running anytime you wish to use the web interface or print via a slicer.
+# Docker installation
+docker compose run --rm ankerctl config show
+```
+
+> **Important:** The cached configuration contains sensitive credentials, including your authentication token and MQTT user ID. Do not share the configuration files or unredacted command output.
+
+Run a command with `-h` or `--help` to see its available options. The webserver process or Docker service must remain running while you use the web interface or print from a slicer.
 
 ## Usage
 
 ### Web Interface
 
-1. Start the webserver by running one of the following commands in the folder you placed ankerctl in. You’ll need to have this running whenever you want to use the web interface or send jobs to the printer via a slicer:
+1. Start the webserver from the repository directory using the command for your installation method:
 
-   Docker Installation Method:
+   Docker installation:
 
    ```sh
-   docker compose up
+   docker compose up -d
    ```
 
-   Git Installation Method Using Python:
+   Git installation:
 
    ```sh
    ./ankerctl.py webserver run
    ```
 
-2. Navigate to [http://localhost:4470](http://localhost:4470) in your browser of choice on the same computer the webserver is running on. 
- 
- > **Important**
- > You must have logged in via `ankerctl.py config login` in your terminal *before* you can use the web interface. Once logged in, the page will load providing access to your cameras and printer status.
+2. Open [http://localhost:4470](http://localhost:4470) on the computer running `ankerctl`. When accessing a Docker host from another computer on the same network, replace `localhost` with the Docker host's IP address.
+
+> **Important:** You must complete the authentication step before using the web interface. Once authenticated, the page provides access to printer status and available cameras.
 
 ### Printing Directly from PrusaSlicer
 
-ankerctl can allow slicers like PrusaSlicer (and its derivatives) to send print jobs to the printer using the slicer’s built in communications tools. The web server must be running in order to send jobs to the printer. 
+`ankerctl` allows slicers such as PrusaSlicer and its derivatives to send print jobs to the printer using the slicer's built-in communication tools. The webserver must be running to receive jobs.
 
-Currently there’s no way to store the jobs for later printing on the printer, so you’re limited to using the “Send and Print” option only to immediately start the print once it’s been transmitted. 
+The printer cannot store uploaded jobs for later use, so select **Send and Print** to start the job immediately after transfer.
 
 Additional instructions can be found in the web interface.
 
@@ -112,10 +103,10 @@ Additional instructions can be found in the web interface.
 
 ### Command-line tools
 
-Some examples:
+These examples use the Git installation:
 
 ```sh
-# run the webserver to control over webgui
+# run the webserver for the web UI
 ./ankerctl.py webserver run
 
 # attempt to detect printers on local network
@@ -136,6 +127,6 @@ Some examples:
 # capture 4mb of video from camera
 ./ankerctl.py pppp capture-video -m 4mb output.h264
 
-# select printer to use when you have multiple
-./ankerctl.py -p <index> # index starts at 0 and goes up to the number of printers you have
+# select a printer when you have more than one (index starts at 0)
+./ankerctl.py -p <index> <command>
 ```

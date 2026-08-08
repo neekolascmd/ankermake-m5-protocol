@@ -37,6 +37,18 @@ Choose one installation method:
 
 After installing, authenticate your AnkerMake account before starting the web interface or using printer commands.
 
+## Release binaries
+
+Pushing a version tag such as `v1.0.0` builds and publishes archives for:
+
+- Windows x86-64
+- macOS Intel (x86-64)
+- macOS Apple silicon (arm64)
+
+Download them from the [Releases page](https://github.com/neekolascmd/ankermake-m5-protocol/releases). Each release includes a `SHA256SUMS.txt` file for integrity verification.
+
+> **Note:** The release binaries are not currently code-signed or notarized. Windows SmartScreen or macOS Gatekeeper may display a warning.
+
 ## Authenticating your Account
 
 From the root `ankermake-m5-protocol` directory, run the login command for your installation method.

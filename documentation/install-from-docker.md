@@ -1,32 +1,67 @@
 # Installation (Docker)
 
-To start `ankerctl` using docker compose on your local machine, run:
+The Docker image is built locally from this repository. The Compose configuration
+does not download a prebuilt `ankerctl` image from a container registry.
+
+## Requirements
+
+- [Git](https://git-scm.com/)
+- [Docker Engine](https://docs.docker.com/engine/install/) or
+  [Docker Desktop](https://docs.docker.com/desktop/) with Docker Compose
+
+## Install
+
+Clone this fork and enter the repository:
 
 ```sh
-curl -O https://raw.githubusercontent.com/anselor/ankermake-m5-protocol/exiles/docker-compose.yaml
-curl -O https://raw.githubusercontent.com/anselor/ankermake-m5-protocol/exiles/compose.sh
-curl -O https://raw.githubusercontent.com/anselor/ankermake-m5-protocol/exiles/.env
-docker-compose build
-./compose.sh up
+git clone https://github.com/neekolascmd/ankermake-m5-protocol.git
+cd ankermake-m5-protocol
 ```
 
-To start `ankerctl` using docker compose as a daemon service running on another system:
+Build the `ankerctl:latest` image from the included `Dockerfile`:
 
 ```sh
-curl -O https://raw.githubusercontent.com/anselor/ankermake-m5-protocol/exiles/docker-compose.yaml
-curl -O https://raw.githubusercontent.com/anselor/ankermake-m5-protocol/exiles/compose.sh
-curl -O https://raw.githubusercontent.com/anselor/ankermake-m5-protocol/exiles/.env
-docker-compose build
-./compose.sh -o up -d
+docker compose build
 ```
 
-## Logging into AnkerMake
-
-Once the container is running, you must log in to your AnkerMake account so that your configuration can be pulled from AnkerMake's API. 
-Read the [Login Instructions page](login-instructions.md) for how to authenticate.
-
-For docker, you can run the CLI login command interactively inside the running container like so:
+Log in to your AnkerMake account. This saves the configuration in the persistent
+`ankerctl_vol` Docker volume:
 
 ```sh
-docker exec -it ankerctl /app/ankerctl.py config login
+docker compose run --rm ankerctl config login
+```
+
+Read the [Login Instructions](login-instructions.md) for additional authentication
+options and troubleshooting.
+
+Start `ankerctl` in the background:
+
+```sh
+docker compose up -d
+```
+
+Open <http://localhost:4470> on the Docker host. From another computer on the same
+network, replace `localhost` with the Docker host's IP address.
+
+## Manage the container
+
+Follow the service logs:
+
+```sh
+docker compose logs -f ankerctl
+```
+
+Stop and remove the container without deleting its persistent configuration:
+
+```sh
+docker compose down
+```
+
+## Update
+
+Pull the latest source, rebuild the local image, and recreate the container:
+
+```sh
+git pull
+docker compose up --build -d
 ```

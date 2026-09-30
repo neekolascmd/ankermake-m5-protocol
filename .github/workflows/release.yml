@@ -74,6 +74,20 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
+      - name: Create isolated build environment
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          import venv
+
+          # Keep runner-provided packages (such as pipx) out of the build.
+          build_env = Path(os.environ["RUNNER_TEMP"]) / "build-venv"
+          venv.create(build_env, with_pip=True)
+          scripts = build_env / ("Scripts" if os.name == "nt" else "bin")
+          with open(os.environ["GITHUB_PATH"], "a") as github_path:
+              print(scripts, file=github_path)
+
       - name: Install build dependencies
         shell: bash
         run: |

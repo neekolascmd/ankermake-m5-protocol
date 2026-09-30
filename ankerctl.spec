@@ -1,5 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
+
+
+# The Windows icon cannot be used as a native macOS application icon. The
+# release builds are console executables, so macOS does not require one.
+icon = 'packaging/logo.ico' if sys.platform == 'win32' else None
+
 
 a = Analysis(
     ['ankerctl.py'],
@@ -35,5 +42,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['packaging\\logo.ico'],
+    icon=icon,
 )

@@ -27,6 +27,9 @@ Services:
     - config: Handles configuration manipulation for ankerctl
 """
 import json
+import os
+import threading
+import time
 import logging as log
 
 from datetime import datetime
@@ -279,7 +282,7 @@ def app_api_ankerctl_config_login():
 
     for key in ["login_email", "login_password", "login_country"]:
         if key not in form_data:
-            return jsonify({"error": "Error: Missing form entry '{key}'"})
+            return jsonify({"error": f"Error: Missing form entry '{key}'"})
 
     if not cli.countrycodes.code_to_country(form_data["login_country"]):
         return jsonify({"error": f"Error: Invalid country code '{form_data['login_country']}'"})
@@ -287,8 +290,8 @@ def app_api_ankerctl_config_login():
     try:
         web.config.config_login(form_data['login_email'], form_data['login_password'],
                                 form_data['login_country'],
-                                form_data['login_captcha_id'], form_data['login_captcha_text'],
-                                app.config["config"])
+                                form_data.get('login_captcha_id', ''), form_data.get('login_captcha_text', ''),
+                                app.config["config"], app.config["insecure"])
         flash("AnkerMake Config Imported!", "success")
         return jsonify({"redirect": url_for('app_api_ankerctl_server_reload')})
     except web.config.ConfigImportError as err:
@@ -467,14 +470,12 @@ def webserver(config, printer_index, host, port, insecure=False, **kwargs):
     """
     with config.open() as cfg:
         video_supported = False
-        if cfg:
-            if printer_index < len(cfg.printers):
-                video_supported = cfg.printers[printer_index].model not in PRINTERS_WITHOUT_CAMERA
+        if not cfg or not cfg.printers:
+            log.warning("No printers found in config, log in using the web interface")
+        elif printer_index < len(cfg.printers):
+            video_supported = cfg.printers[printer_index].model not in PRINTERS_WITHOUT_CAMERA
         else:
-            if not cfg.printers:
-                log.error("No printers found in config")
-            else:
-                log.critical(f"Printer number {printer_index} out of range, max printer number is {len(cfg.printers)-1} ")
+            log.critical(f"Printer number {printer_index} out of range, max printer number is {len(cfg.printers)-1} ")
         app.config["config"] = config
         app.config["login"] = bool(cfg)
         app.config["printer_index"] = printer_index
@@ -485,4 +486,26 @@ def webserver(config, printer_index, host, port, insecure=False, **kwargs):
         app.config.update(kwargs)
         if cfg.printers:
             register_services(app)
+        start_parent_watchdog()
         app.run(host=host, port=port)
+
+
+def start_parent_watchdog():
+    """
+    Exit when the process that launched the webserver goes away.
+
+    The macOS app sets ANKERCTL_PARENT_PID when it starts the bundled server, so
+    the server does not keep the port busy if the app crashes or is force quit.
+    """
+    try:
+        parent_pid = int(os.environ.get("ANKERCTL_PARENT_PID", ""))
+    except ValueError:
+        return
+
+    def watch():
+        while os.getppid() == parent_pid:
+            time.sleep(1)
+        log.warning("Parent process exited, stopping webserver")
+        os._exit(0)
+
+    threading.Thread(target=watch, name="parent-watchdog", daemon=True).start()

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a native macOS app (`macos/`) that bundles the webserver, shows the web interface in a window, runs from the menu bar, and can send G-code files opened from Finder. Release builds include `ankerctl-macos-app-<arch>.dmg`.
+- Added the `ANKERCTL_CONFIG_DIR` environment variable to override the configuration directory.
 - Added native Home Assistant custom component integration (`custom_components/ankermake`) with UI-based config flow.
 - Added new `documentation/login-instructions.md` covering the updated API login procedure.
 
@@ -17,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote `README.md` and `install-from-git/docker.md` installation documentation to reflect the new CLI API authentication flow.
 
 ### Fixed
+- Fixed the web login reporting "AnkerMake Config Imported!" when importing the printer configuration failed.
+- Fixed print uploads from the web interface and slicers reporting success when the transfer to the printer failed.
+- Fixed the web login ignoring the `--insecure` flag and failing when the CAPTCHA fields were missing from the form.
+- Fixed the webserver not warning when the configuration has no printers, and the Python version check rejecting future major versions.
+- Log output no longer contains color escape codes when it is not written to a terminal (or when `NO_COLOR` is set).
 - Fixed the offline WebGUI Temperature Control inputs by replacing the deprecated `PREHEAT_CONFIG` command channel with `ZZ_MQTT_CMD_GCODE` handlers for `M104` and `M140`.
 - Fixed a fatal `EOFError` race condition over Windows native environments where multiprocessing sockets (Video and MQTT queues) crashed attempting to bind the same hardcoded broadcast port concurrently.
 - Fixed webserver startup crashing issues on Windows environments due to unhandled `queue.Empty` exceptions parsing the stream state.

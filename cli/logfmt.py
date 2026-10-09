@@ -1,11 +1,14 @@
+import os
+import sys
 import click
 import logging
 
 
 class ColorFormatter(logging.Formatter):
 
-    def __init__(self, fmt):
+    def __init__(self, fmt, color=True):
         super().__init__(fmt)
+        self._color = color
 
         self._colors = {
             logging.CRITICAL: "red",
@@ -25,6 +28,8 @@ class ColorFormatter(logging.Formatter):
 
     def format(self, rec):
         marks, colors = self._marks, self._colors
+        if not self._color:
+            return f"[{marks[rec.levelno]}] {super().format(rec)}"
         return "".join([
             click.style("[",                fg="blue",              bold=True),
             click.style(marks[rec.levelno], fg=colors[rec.levelno], bold=True),
@@ -47,5 +52,8 @@ def setup_logging(level=logging.INFO):
     log = logging.getLogger()
     log.setLevel(level)
     handler = log.handlers[0]
-    handler.setFormatter(ColorFormatter("%(message)s"))
+    # Respect https://no-color.org and avoid escape codes when output is piped
+    # (for example when the server runs inside the macOS app).
+    color = not os.environ.get("NO_COLOR") and sys.stderr.isatty()
+    handler.setFormatter(ColorFormatter("%(message)s", color=color))
     return log

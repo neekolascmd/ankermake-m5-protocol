@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- App icon source: the ankerctl logo (static/img/logo.svg) on a macOS-style rounded square. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3f47"/>
+      <stop offset="1" stop-color="#16181c"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#bg)"/>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="185" ry="185" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>
+  <g transform="translate(512 512) scale(10) translate(-22.621 -23.495)">
+    <path d="M 22.621,46.99 H 0 v -4.488 l 8.497,-8.487 c 7.37,-7.361 8.552,-8.458 8.906,-8.264 0.225,0.123 1.868,1.698 3.651,3.499 2.764,2.792 3.21,3.335 3.021,3.678 -0.122,0.221 -0.917,1.088 -1.767,1.926 -0.85,0.839 -1.545,1.576 -1.545,1.639 0,0.064 5.286,0.089 11.747,0.058 6.461,-0.032 11.969,-0.004 12.24,0.059 l 0.491,0.116 V 46.99 Z M 33.003,10.272 c -6.732,0 -12.24,0.076 -12.24,0.17 0,0.094 0.738,0.902 1.639,1.798 0.958,0.951 1.64,1.811 1.64,2.068 0,0.598 -6.286,6.892 -6.883,6.892 -0.289,0 -3.324,-2.883 -8.8,-8.361 L 0,4.478 V 0 h 45.242 v 10.272 z" fill="#ff2a2a"/>
+    <path d="m 19.502,23.431 7.021,-7.021 7.022,7.021 -7.022,7.022 z" fill="#ff2a2a"/>
+  </g>
+</svg>

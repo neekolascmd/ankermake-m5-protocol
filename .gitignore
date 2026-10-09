@@ -3,3 +3,7 @@ __pycache__
 .DS_Store
 /settings.json
 .idea/
+/macos/build/
+/macos/dist/
+/macos/.build/
+/macos/.swiftpm/

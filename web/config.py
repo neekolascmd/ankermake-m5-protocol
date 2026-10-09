@@ -82,7 +82,8 @@ def config_show(config: object):
 
 
 
-def config_login(email: str, password: str, country: str, captcha_id: str, captcha_answer: str, config: object):
+def config_login(email: str, password: str, country: str, captcha_id: str, captcha_answer: str, config: object,
+                 insecure: bool = False):
     """
     Loads the login information and then the configuration from the API.
 
@@ -93,12 +94,13 @@ def config_login(email: str, password: str, country: str, captcha_id: str, captc
     - captcha_id: The ID of the captcha, empty if no captcha to solve
     - captcha_answer: The textual answer to the captcha
     - config: A configuration object.
+    - insecure: Disable TLS certificate validation.
     """
     # extract account region
     region = libflagship.logincache.guess_region(country)
 
     try:
-        login = cli.config.fetch_config_by_login(email, password, region, False, captcha_id, captcha_answer)
+        login = cli.config.fetch_config_by_login(email, password, region, insecure, captcha_id, captcha_answer)
     except libflagship.httpapi.APIError as E:
         # check if the error is actually a request to solve a captcha
         if E.json and "data" in E.json:
@@ -113,4 +115,6 @@ def config_login(email: str, password: str, country: str, captcha_id: str, captc
         raise ConfigImportError(f"Login failed: {E}")
 
     # load remaining configuration items from the server
-    cli.config.import_config_from_server(config, login, False)
+    if not cli.config.import_config_from_server(config, login, insecure):
+        raise ConfigImportError("Login succeeded, but the printer configuration could not be imported. "
+                                "See the server log for details.")

@@ -32,7 +32,8 @@ The `ankerctl` program uses [`libflagship`](documentation/developer-docs/libflag
 
 Choose one installation method:
 
-- [Install directly from Git](documentation/install-from-git.md) (recommended). This requires Python 3.10 or later.
+- [Install the macOS app](documentation/macos-app.md). A native app that bundles everything it needs; no Python or terminal required.
+- [Install directly from Git](documentation/install-from-git.md) (recommended on Linux and Windows). This requires Python 3.10 or later.
 - [Install with Docker](documentation/install-from-docker.md). The Docker image is built locally from this repository.
 
 After installing, authenticate your AnkerMake account before starting the web interface or using printer commands.
@@ -45,9 +46,11 @@ Pushing a version tag such as `v1.0.0` builds and publishes archives for:
 - macOS Intel (x86-64)
 - macOS Apple silicon (arm64)
 
+macOS releases also include `ankerctl-macos-app-<arch>.dmg` and `.zip` files containing the [macOS app](documentation/macos-app.md).
+
 Download them from the [Releases page](https://github.com/neekolascmd/ankermake-m5-protocol/releases). Each release includes a `SHA256SUMS.txt` file for integrity verification.
 
-> **Note:** The release binaries are not currently code-signed or notarized. Windows SmartScreen or macOS Gatekeeper may display a warning.
+> **Note:** The release binaries are not currently code-signed or notarized. Windows SmartScreen or macOS Gatekeeper may display a warning. See the [macOS app instructions](documentation/macos-app.md#installing) for how to open the app.
 
 ## Authenticating your Account
 

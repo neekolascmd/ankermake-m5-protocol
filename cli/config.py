@@ -1,6 +1,7 @@
 import logging as log
 import contextlib
 import json
+import os
 from datetime import datetime
 
 from pathlib import Path
@@ -18,13 +19,14 @@ from .model import Serialize, Account, Printer, Config
 
 class BaseConfigManager:
 
-    def __init__(self, dirs: PlatformDirs, classes=None):
+    def __init__(self, dirs: PlatformDirs, classes=None, config_root=None):
         self._dirs = dirs
+        self._config_root = Path(config_root) if config_root else dirs.user_config_path
         if classes:
             self._classes = {t.__name__: t for t in classes}
         else:
             self._classes = []
-        dirs.user_config_path.mkdir(exist_ok=True, parents=True)
+        self._config_root.mkdir(exist_ok=True, parents=True)
 
     @contextlib.contextmanager
     def _borrow(self, value, write, default=None):
@@ -35,7 +37,7 @@ class BaseConfigManager:
 
     @property
     def config_root(self):
-        return self._dirs.user_config_path
+        return self._config_root
 
     def config_path(self, name):
         return self.config_root / Path(f"{name}.json")
@@ -81,7 +83,10 @@ class AnkerConfigManager(BaseConfigManager):
 
 
 def configmgr(profile="default"):
-    return AnkerConfigManager(PlatformDirs("ankerctl"), classes=(Config, Account, Printer))
+    # ANKERCTL_CONFIG_DIR overrides the platform default config directory
+    # (for example ~/Library/Application Support/ankerctl on macOS).
+    return AnkerConfigManager(PlatformDirs("ankerctl"), classes=(Config, Account, Printer),
+                              config_root=os.environ.get("ANKERCTL_CONFIG_DIR") or None)
 
 
 def load_config_from_api(auth_token, region, insecure):
@@ -170,11 +175,11 @@ def import_config_from_server(config, login_data, insecure):
         log.error(f"Config import failed: {E} "
                      "(auth token might be expired: make sure Ankermake Slicer can connect, then try again)")
         traceback.print_exc()
-        return
+        return False
     except Exception as E:
         log.error(f"Config import failed: {E}")
         traceback.print_exc()
-        return
+        return False
 
     # prepare to rescue any printer IP addresses already configured
     printer_ips = get_printer_ips(config)
@@ -184,6 +189,8 @@ def import_config_from_server(config, login_data, insecure):
 
     # restore printer IP addresses
     update_empty_printer_ips(config, printer_ips)
+
+    return True
 
 
 def get_printer_ips(config):

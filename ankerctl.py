@@ -42,7 +42,7 @@ class Environment:
         with self.config.open() as config:
             if not getattr(config, 'printers', False):
                 msg = "No printers found in config. Please upload configuration " \
-                    "using the webserver or 'ankerctl.py config import'"
+                    "using the webserver or 'ankerctl.py config login'"
                 if required:
                     log.critical(msg)
                 else:
@@ -57,7 +57,7 @@ class Environment:
             try:
                 cli.config.attempt_config_upgrade(self.config, "default", self.insecure)
             except Exception as E:
-                log.critical(f"Failed to refresh config. Please import configuration using 'config import' ({E})")
+                log.critical(f"Failed to refresh config. Please log in again using 'config login' ({E})")
 
 
 pass_env = click.make_pass_decorator(Environment)
@@ -435,9 +435,8 @@ def config_login(env, country, email, password):
         log.info(f"Login successful, importing configuration from server..")
 
         # load remaining configuration items from the server
-        cli.config.import_config_from_server(env.config, login, env.insecure)
-
-        log.info("Finished import")
+        if cli.config.import_config_from_server(env.config, login, env.insecure):
+            log.info("Finished import")
 
 
 

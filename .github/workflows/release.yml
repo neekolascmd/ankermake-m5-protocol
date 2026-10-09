@@ -15,6 +15,8 @@ on:
       - "templates/**"
       - "specification/**"
       - "packaging/**"
+      - "macos/**"
+      - "CHANGELOG.md"
       - "README.md"
       - "LICENSE"
   push:
@@ -126,11 +128,30 @@ jobs:
           cp "${{ matrix.executable }}" LICENSE README.md package/
           tar -czf "${{ matrix.archive }}" -C package .
 
+      - name: Build macOS app
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          PYTHON: python
+          VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: macos/build-app.sh
+
       - name: Upload packaged binary
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.platform }}
           path: ${{ matrix.archive }}
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload macOS app
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.platform }}-app
+          path: |
+            macos/dist/ankerctl-macos-app-*.zip
+            macos/dist/ankerctl-macos-app-*.dmg
           if-no-files-found: error
           retention-days: 7
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-09
+
 ### Added
 - Added a native macOS app (`macos/`) that bundles the webserver, shows the web interface in a window, runs from the menu bar, and can send G-code files opened from Finder. Release builds include `ankerctl-macos-app-<arch>.dmg`.
 - Added the `ANKERCTL_CONFIG_DIR` environment variable to override the configuration directory.
@@ -34,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed obsolete `config decode` and `config import` CLI commands from `ankerctl.py`.
 - Removed abandoned helper scripts including `docker-import.sh`, `extract-auth-token.py`, and `web/platform.py`.
 - Removed unused `user_agents` parsing dependency from `requirements.txt`.
+
 ## [1.0.1] - 2024-01-15
 
  - Fixes MQTT connection errors post AnkerMake Firmware Upgrades

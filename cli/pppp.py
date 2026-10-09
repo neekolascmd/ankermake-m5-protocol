@@ -1,4 +1,6 @@
+import errno
 import os
+import sys
 import time
 import uuid
 import logging as log
@@ -76,20 +78,23 @@ def _pppp_query_printers(bind_addr=None, dumpfile=None):
             return
         raise
 
-    api.send(PktLanSearch())
+    try:
+        api.send(PktLanSearch())
 
-    # collect replies from all available printers within 1.0 second
-    wait_time = 1.0
-    timeout = time.monotonic() + wait_time
-    while wait_time > 0:
-        try:
-            resp = api.recv(timeout=wait_time)
-        except TimeoutError:
-            pass
-        else:
-            if isinstance(resp, PktPunchPkt):
-                yield str(resp.duid), api.addr[0]
-        wait_time = timeout - time.monotonic()
+        # collect replies from all available printers within 1.0 second
+        wait_time = 1.0
+        timeout = time.monotonic() + wait_time
+        while wait_time > 0:
+            try:
+                resp = api.recv(timeout=wait_time)
+            except TimeoutError:
+                pass
+            else:
+                if isinstance(resp, PktPunchPkt):
+                    yield str(resp.duid), api.addr[0]
+            wait_time = timeout - time.monotonic()
+    finally:
+        api.sock.close()
 
 
 def pppp_find_printer_ip_addresses(dumpfile=None):
@@ -102,6 +107,28 @@ def pppp_find_printer_ip_addresses(dumpfile=None):
     else:
         # Non-Windows: Broadcast goes out on all interfaces
         yield from _pppp_query_printers(dumpfile=dumpfile)
+
+
+def pppp_network_error_hint(err):
+    """
+    Returns a readable explanation if `err` means that the operating system did
+    not let ankerctl send packets on the local network, or None otherwise.
+
+    On macOS this happens while the Local Network privacy prompt is pending, or
+    after the user denied access: sending fails with EHOSTUNREACH ("No route to
+    host").
+    """
+    if not isinstance(err, OSError) or err.errno not in (errno.EHOSTUNREACH, errno.EPERM):
+        return None
+
+    if sys.platform == "darwin":
+        return "macOS is blocking ankerctl from accessing the local network. " \
+               "Allow ankerctl in System Settings > Privacy & Security > Local Network " \
+               "(or click Allow on the prompt), then try again."
+
+    return f"The local network is not reachable ({os.strerror(err.errno)}). " \
+           "Make sure this computer is connected to the same network as the printer " \
+           "and that no firewall blocks UDP port 32108, then try again."
 
 
 def pppp_send_file(api, fui, data):

@@ -5,6 +5,7 @@ configuration settings.
 
 Classes:
 - ConfigImportError: Raised when there is an error with the config api.
+- PrinterDiscovery: Searches the local network for printers and stores their IP addresses.
 
 Functions:
 - config_show(config): Takes a configuration object as input and returns a string
@@ -13,12 +14,17 @@ Functions:
                                      Loads the login information as well as the
                                      configration from the API.
 """
+import logging as log
+import threading
+import time
+
 import libflagship.httpapi
 import libflagship.logincache
 
 import cli.util
 import cli.config
 import cli.countrycodes
+import cli.pppp
 
 
 class ConfigImportError(Exception):
@@ -35,6 +41,78 @@ class ConfigImportError(Exception):
             self.captcha = None
 
         super().__init__(*args)
+
+
+class PrinterDiscovery:
+    """
+    Searches the local network for printers and stores the IP addresses found
+    in the configuration.
+
+    The Anker cloud does not always report the IP address of a printer, so the
+    webserver searches for it after logging in and whenever the PPPP service
+    needs an address it does not have.
+    """
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._last_search = None
+        self.last_error = None
+
+    def search(self, config, min_interval: float = 0):
+        """
+        Broadcasts a LAN search and updates the IP addresses of the printers
+        that answered.
+
+        Args:
+        - config: A configuration manager.
+        - min_interval: Skip the search if the previous one started less than
+                        this many seconds ago.
+
+        Returns:
+        - A tuple (found_printers, updated_printers): a dict of {p2p_duid: ip_addr}
+          of all printers that answered, and the names of the printers whose IP
+          address changed (None upon a configuration error).
+        - None if the search was skipped because of `min_interval`.
+
+        Raises:
+        - OSError: The search broadcast could not be sent. Use
+                   cli.pppp.pppp_network_error_hint() to explain it to the user.
+        """
+        with self._lock:
+            now = time.monotonic()
+            if min_interval and self._last_search is not None and now - self._last_search < min_interval:
+                return None
+            self._last_search = now
+
+            try:
+                found_printers = dict(cli.pppp.pppp_find_printer_ip_addresses())
+            except OSError as err:
+                self.last_error = err
+                raise
+            self.last_error = None
+
+            if not found_printers:
+                return found_printers, []
+
+            log.debug("Checking configured printer IP addresses:")
+            return found_printers, cli.config.update_printer_ip_addresses(config, found_printers)
+
+    @property
+    def last_error_hint(self):
+        """
+        Explanation of why the last search could not be sent, if the operating
+        system blocked it (see cli.pppp.pppp_network_error_hint()).
+        """
+        return cli.pppp.pppp_network_error_hint(self.last_error)
+
+
+printer_discovery = PrinterDiscovery()
+
+
+def search_error_message(err: OSError):
+    """
+    Returns a readable message for an OSError raised by PrinterDiscovery.search().
+    """
+    return cli.pppp.pppp_network_error_hint(err) or f"Could not search the local network for printers: {err}"
 
 
 def config_show(config: object):

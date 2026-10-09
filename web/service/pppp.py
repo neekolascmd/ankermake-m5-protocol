@@ -5,10 +5,17 @@ from datetime import datetime, timedelta
 
 from ..lib.service import Service, ServiceRestartSignal, ServiceStoppedError
 from .. import app
+from ..config import printer_discovery, search_error_message
+
+import cli.pppp
 
 from libflagship.pktdump import PacketWriter
 from libflagship.pppp import P2PCmdType, PktClose, Duid, Type, Xzyh, Aabb
 from libflagship.ppppapi import AnkerPPPPAsyncApi, PPPPState
+
+
+# Minimum number of seconds between automatic searches for the printer IP address
+IP_SEARCH_INTERVAL = 30
 
 
 class PPPPService(Service):
@@ -38,7 +45,7 @@ class PPPPService(Service):
             printer = cfg.printers[app.config["printer_index"]]
 
         if not printer.ip_addr:
-            raise ServiceStoppedError("Printer IP address not available")
+            printer = self._search_ip_addr()
 
         try:
             import platform
@@ -77,6 +84,9 @@ class PPPPService(Service):
                     print('PPPPService stop iteration')
                     raise ConnectionRefusedError("Connection rejected by device")
         except Exception as e:
+            hint = cli.pppp.pppp_network_error_hint(e)
+            if hint:
+                raise ServiceStoppedError(f"Cannot connect to printer {printer.name}: {hint}") from None
             print(f"CRASH IN WORKER START CONNECT: {e}")
             import traceback; traceback.print_exc()
             raise
@@ -84,6 +94,39 @@ class PPPPService(Service):
         log.info(f"Successfully connected to printer {printer.name} ({printer.p2p_duid}) over pppp using ip {printer.ip_addr}")
         log.info("Established pppp connection")
         self._api = api
+
+    def _search_ip_addr(self):
+        """
+        Searches the local network for the printer when the configuration has
+        no IP address for it (the Anker cloud does not always report one), and
+        returns the updated printer.
+
+        Searches run at most every IP_SEARCH_INTERVAL seconds. Start attempts
+        in between raise TimeoutError, which the service retries without
+        logging, so the log is not flooded every second.
+        """
+        config = app.config["config"]
+
+        try:
+            result = printer_discovery.search(config, min_interval=IP_SEARCH_INTERVAL)
+        except OSError as err:
+            log.warning(f"{self.name}: Printer IP address not available. {search_error_message(err)}")
+            raise TimeoutError("Printer IP address not available") from None
+
+        if result is None:
+            raise TimeoutError("Printer IP address not available")
+
+        with config.open() as cfg:
+            printer = cfg.printers[app.config["printer_index"]]
+
+        if not printer.ip_addr:
+            log.warning(f"{self.name}: Printer {printer.name} did not answer the local network search. "
+                        f"Make sure it is turned on and connected to the same network as ankerctl. "
+                        f"Searching again in {IP_SEARCH_INTERVAL} seconds.")
+            raise TimeoutError("Printer IP address not available")
+
+        log.info(f"{self.name}: Found printer {printer.name} at {printer.ip_addr}")
+        return printer
 
     def _recv_aabb(self, fd):
         data = fd.read(12)

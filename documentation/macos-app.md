@@ -36,8 +36,11 @@ works for both.
    xattr -dr com.apple.quarantine /Applications/ankerctl.app
    ```
 
-4. When macOS asks whether ankerctl may find devices on your local network,
-   click **Allow**. The app needs local network access to reach the printer.
+4. When you open the app, macOS asks whether ankerctl may find devices on
+   your local network. Click **Allow**. The app needs local network access to
+   find and connect to the printer. If you clicked **Don't Allow**, a banner at
+   the top of the window has an **Open Privacy Settings** button: turn on
+   **ankerctl** under **System Settings ▸ Privacy & Security ▸ Local Network**.
 
 ## First run
 
@@ -45,12 +48,26 @@ works for both.
 2. Enter your AnkerMake email address, password and country, then click
    **Fetch**. Solve the CAPTCHA if one is shown. See the
    [Login Instructions](login-instructions.md) for details.
-3. If the page says that the printer IP address is not set, click
-   **Update Printer IP Addresses** on the **Setup** tab to search the local
-   network for printers.
+3. ankerctl searches the local network for your printer right after you log
+   in, because the Anker cloud does not always report the printer's IP
+   address. While the address is unknown, it searches again at most every 30
+   seconds. To search right away, click **Update Printer IP Addresses** on the
+   **Setup** tab.
 
 To print from PrusaSlicer, OrcaSlicer or a similar slicer, follow the
 **Instructions** tab in the app and use `127.0.0.1:4470` as the host.
+
+## Troubleshooting
+
+If the printer status, camera or the PPPP connection stays disconnected, open
+**Server ▸ Show Server Log**:
+
+- *"macOS is blocking ankerctl from accessing the local network"*: turn on
+  **ankerctl** under **System Settings ▸ Privacy & Security ▸ Local Network**,
+  then click **Update Printer IP Addresses** on the **Setup** tab (or wait up
+  to 30 seconds).
+- *"did not answer the local network search"*: make sure the printer is turned
+  on and connected to the same network as your Mac.
 
 ## Settings
 

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The webserver searches the local network for the printer automatically when the Anker cloud does not report its IP address: right after you log in from the web interface, and at most every 30 seconds while the PPPP service waits for an address. You no longer need to click **Update Printer IP Addresses** after the first login.
+- The macOS app asks for Local Network access as soon as it starts, and shows a banner with an **Open Privacy Settings** button while macOS blocks access.
+
+### Fixed
+- Fixed **Update Printer IP Addresses** failing with HTTP 500 when the search broadcast cannot be sent, for example while macOS blocks Local Network access ("No route to host"). It now shows how to allow access in System Settings.
+- The PPPP service logs how to allow Local Network access instead of a traceback when macOS blocks it.
+- Fixed the printer search leaving its network socket open.
+
 ## [1.1.0] - 2026-10-09
 
 ### Added

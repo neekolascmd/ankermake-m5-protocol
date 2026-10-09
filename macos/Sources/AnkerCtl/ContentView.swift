@@ -3,9 +3,11 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(ServerController.self) private var server
+    @Environment(LocalNetworkAccess.self) private var localNetwork
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
     @State private var store = WebViewStore()
+    @State private var hideLocalNetworkBanner = false
 
     var body: some View {
         Group {
@@ -26,6 +28,14 @@ struct ContentView: View {
                     symbol: "exclamationmark.triangle",
                     title: "The ankerctl server is not running",
                     message: reason.prefix(1).uppercased() + reason.dropFirst() + "."
+                )
+            }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if showLocalNetworkBanner {
+                LocalNetworkBanner(
+                    openSettings: localNetwork.openSettings,
+                    dismiss: { hideLocalNetworkBanner = true }
                 )
             }
         }
@@ -72,6 +82,11 @@ struct ContentView: View {
         .onDisappear { DockIcon.update(mainWindowVisible: false) }
     }
 
+    /// The permission only matters for the server the app starts itself.
+    private var showLocalNetworkBanner: Bool {
+        localNetwork.status == .blocked && !hideLocalNetworkBanner && server.state != .external
+    }
+
     private func placeholder(symbol: String, title: String, message: String) -> some View {
         ContentUnavailableView {
             Label(title, systemImage: symbol)
@@ -85,6 +100,41 @@ struct ContentView: View {
                 Button("Settings…") { openSettings() }
             }
         }
+    }
+}
+
+/// Shown while macOS blocks local network access, which the server needs to
+/// find and connect to the printer.
+struct LocalNetworkBanner: View {
+    let openSettings: () -> Void
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.title2)
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("ankerctl can’t reach your local network")
+                    .font(.callout.weight(.semibold))
+                Text("Allow local network access so ankerctl can find and connect to your printer: click Allow when macOS asks, or turn on ankerctl in System Settings ▸ Privacy & Security ▸ Local Network.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            Button("Open Privacy Settings", action: openSettings)
+            Button(action: dismiss) {
+                Image(systemName: "xmark")
+            }
+            .buttonStyle(.borderless)
+            .help("Hide this message")
+            .accessibilityLabel("Hide")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.orange.opacity(0.12))
+        .overlay(alignment: .bottom) { Divider() }
     }
 }
 

@@ -10,6 +10,7 @@ struct AnkerCtlApp: App {
             ContentView()
                 .environment(appDelegate.server)
                 .environment(appDelegate.uploader)
+                .environment(appDelegate.localNetwork)
         }
         .defaultSize(width: 1100, height: 800)
         .commands {
@@ -46,6 +47,7 @@ enum WindowID {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let server: ServerController
     let uploader: PrintUploader
+    let localNetwork = LocalNetworkAccess()
 
     override init() {
         SettingsKey.registerDefaults()
@@ -56,6 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Ask for local network access before the server needs it to find the printer.
+        localNetwork.start()
         server.start()
     }
 

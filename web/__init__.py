@@ -189,8 +189,12 @@ def app_root():
             printer = cfg.printers[app.config["printer_index"]]
             country = cfg.account.country
             if not printer.ip_addr:
-                flash("Printer IP address is not set yet, please complete the setup...",
-                      "warning")
+                message = web.config.printer_discovery.last_error_hint or \
+                    "Printer IP address is not set yet. ankerctl searches the local network for the " \
+                    "printer automatically; you can also click Update Printer IP Addresses on the Setup tab."
+                # skip it if a failed search just flashed the same hint
+                if message not in [msg for _, msg in session.get("_flashes", [])]:
+                    flash(message, "warning")
         else:
             anker_config = "No printers found, please load your login config..."
             config_existing_email = ""
@@ -244,13 +248,16 @@ def app_api_ankerctl_config_update_ip_addresses():
     category = "info"
     url = url_for("app_root")
     config = app.config["config"]
-    found_printers = dict(list(cli.pppp.pppp_find_printer_ip_addresses()))
+
+    try:
+        found_printers, updated_printers = web.config.printer_discovery.search(config)
+    except OSError as err:
+        # On macOS, sending the broadcast fails while the Local Network
+        # privacy prompt is pending or after access was denied.
+        log.warning(f"Printer search failed: {err}")
+        return web.util.flash_redirect(url, web.config.search_error_message(err), "danger")
 
     if found_printers:
-        # update printer IP addresses
-        log.debug(f"Checking configured printer IP addresses:")
-        updated_printers = cli.config.update_printer_ip_addresses(config, found_printers)
-
         # determine the message to display to the user
         if updated_printers is not None:
             if updated_printers:
@@ -293,7 +300,9 @@ def app_api_ankerctl_config_login():
                                 form_data.get('login_captcha_id', ''), form_data.get('login_captcha_text', ''),
                                 app.config["config"], app.config["insecure"])
         flash("AnkerMake Config Imported!", "success")
-        return jsonify({"redirect": url_for('app_api_ankerctl_server_reload')})
+        search_printers_after_login(app.config["config"])
+        # The internal reload keeps the messages flashed above
+        return jsonify({"redirect": url_for('app_api_ankerctl_server_internal_reload')})
     except web.config.ConfigImportError as err:
         if err.captcha:
             # we have to solve a capture, display it
@@ -308,6 +317,30 @@ def app_api_ankerctl_config_login():
         log.exception(f"Config import failed: {err}")
         flash(f"Unexpected error occurred: {err}", "danger")
         return jsonify({"redirect": url_for('app_root')})
+
+
+def search_printers_after_login(config):
+    """
+    Searches the local network for the printers of a freshly imported
+    configuration, since the Anker cloud does not always report their IP
+    addresses, and flashes the result.
+    """
+    try:
+        found_printers, updated_printers = web.config.printer_discovery.search(config)
+    except OSError as err:
+        log.warning(f"Printer search failed: {err}")
+        flash(f"Could not search for your printer: {web.config.search_error_message(err)}", "warning")
+        return
+
+    if updated_printers:
+        flash(f"Found printer(s) {', '.join(updated_printers)} on the local network", "success")
+
+    with config.open() as cfg:
+        missing = [p.name for p in cfg.printers if not p.ip_addr]
+    if missing:
+        flash(f"Could not find printer(s) {', '.join(missing)} on the local network. "
+              "Make sure the printer is turned on and connected to the same network as ankerctl; "
+              "ankerctl keeps searching automatically.", "warning")
 
 
 @app.get("/api/ankerctl/server/reload")
